@@ -25,9 +25,6 @@ headers = {
     'Authorization': f"Bearer {acess_token}",
     'Client-Id': id_client
 }
-
-
-
 r = requests.get('https://api.twitch.tv/helix/streams/', headers=headers)
 r.raise_for_status()
 print(r.json())
