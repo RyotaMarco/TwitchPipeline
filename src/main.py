@@ -1,4 +1,4 @@
-from config import *
+from config.twitch_config import *
 
 
 token_info = r.json()
