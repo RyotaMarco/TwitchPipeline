@@ -1,4 +1,4 @@
-from src.api.twitch_api import get_streams
+from src.api.twitch_api import *
 
-print(get_streams())
+print(get_filtered_params())
 

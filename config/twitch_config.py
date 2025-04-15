@@ -3,7 +3,9 @@ import dotenv
 import os
 
 dotenv.load_dotenv()
-
+'''
+Main configuration for using the Twitch API
+'''
 
 def get_acess_token():
     id_client = os.getenv("ID_CLIENT")
