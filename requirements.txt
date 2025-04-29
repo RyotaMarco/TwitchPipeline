@@ -1,3 +1,4 @@
 requests 
 pyspark == 3.5.4
 python-dotenv
+futures
