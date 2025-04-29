@@ -39,6 +39,7 @@ with ThreadPoolExecutor(max_workers=max_workers) as executor:
 successful = [r for r in results if 'error' not in r]
 failed = [r for r in results if 'error' in r]
 
+
 print(f"Concluido em {time.time() - start_time:.2f} segudos")
 print(f"Sucesso: {len(successful)}, Falhas: {len(failed)}")
 
