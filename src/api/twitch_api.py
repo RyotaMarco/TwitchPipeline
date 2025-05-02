@@ -1,15 +1,17 @@
 
 from config.twitch_config import get_headers
 import time
+import os
 import requests
 from typing import List, Dict
+from utils.log import *
 
 '''
 Access the Twitch API with the correct parameters for this project
 '''
+log_config()
 
-
-BASE_URL = 'https://api.twitch.tv/helix'
+BASE_URL = os.getenv("BASE_URL")
 
 def get_streams():
     
@@ -51,7 +53,7 @@ def get_streams():
             current_time = int(time.time())
             wait_time = reset_time - current_time
             if wait_time > 0:
-                print(f"Aguardando {wait_time} segundos.")
+                logging.warning(f"Aguardando {wait_time} segundos.")
                 time.sleep(wait_time)
 
         if not cursor:
@@ -70,9 +72,9 @@ def get_filtered_params(stream_id):
 
     response = requests.get(url, headers=headers)
 
-    print(f"Status Code: {response.status_code}")
-    print(f"Response: {response.json()}")
-    print(f"Headers: {response.headers}")
+    logging.info(f"Status Code: {response.status_code}")
+    logging.info(f"Response: {response.json()}")
+    logging.info(f"Headers: {response.headers}")
 
 
     data = response.json().get('data', [])
@@ -91,7 +93,7 @@ def get_filtered_params(stream_id):
         current_time = int(time.time())
         wait_time = reset_time - current_time
         if wait_time > 0:
-            print(f"Aguardando {wait_time} segundos.")
+            logging.info(f"Aguardando {wait_time} segundos.")
             time.sleep(wait_time)
     
     if data:

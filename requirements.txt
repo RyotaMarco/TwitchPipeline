@@ -1,5 +1,6 @@
 requests 
 pyspark == 3.5.4
+# pyspark-stubs optional, install this if you have some problems with auto-complete in pyspark
 python-dotenv
 futures
 tqdm
