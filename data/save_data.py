@@ -8,7 +8,6 @@ load_dotenv()
 def save_all_stream_data(results, filename='streams_data.json'):
 
     raw_data_path = os.getenv("RAW_DATA")
-    
     if raw_data_path is None:
         raise ValueError("RAW_DATA não está definida no ambiente!")
     os.makedirs(raw_data_path, exist_ok=True)

@@ -7,7 +7,7 @@ import random
 from utils.log import *
 
 
-log_config()
+logger = get_logger("Twitch_api_config")
 
 dotenv.load_dotenv()
 '''
@@ -30,7 +30,7 @@ def get_acess_token():
     for attempt in range(max_retries):
         try:
             if token_url is None:
-                logging.error("token_url não está definido no ambiente!")
+                logger.error("token_url não está definido no ambiente!")
                 raise ValueError("token_url não está definido no ambiente!")
             
             response = requests.post(token_url, params=params)
@@ -41,11 +41,11 @@ def get_acess_token():
         except HTTPError as e:
             if e.response.status_code == 502 or 500:
                 wait_time = (2 ** attempt) + random.uniform(0, 1)
-                logging.warning(f"Erro ao obter token. Tentativa {attempt+1}/{max_retries}. Aguardando {wait_time:.2f}s...")
+                logger.warning(f"Erro ao obter token. Tentativa {attempt+1}/{max_retries}. Aguardando {wait_time:.2f}s...")
                 time.sleep(wait_time)
                 continue
             else:
-                logging.error(f"Error: {e}")
+                logger.error(f"Error: {e}")
                 raise
                 
 

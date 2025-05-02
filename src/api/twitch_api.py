@@ -9,7 +9,7 @@ from utils.log import *
 '''
 Access the Twitch API with the correct parameters for this project
 '''
-log_config()
+logger = get_logger("Twitch_api_request")
 
 BASE_URL = os.getenv("BASE_URL")
 
@@ -53,7 +53,7 @@ def get_streams():
             current_time = int(time.time())
             wait_time = reset_time - current_time
             if wait_time > 0:
-                logging.warning(f"Aguardando {wait_time} segundos.")
+                logger.warning(f"Aguardando {wait_time} segundos.")
                 time.sleep(wait_time)
 
         if not cursor:
@@ -72,9 +72,9 @@ def get_filtered_params(stream_id):
 
     response = requests.get(url, headers=headers)
 
-    logging.info(f"Status Code: {response.status_code}")
-    logging.info(f"Response: {response.json()}")
-    logging.info(f"Headers: {response.headers}")
+    logger.info(f"Status Code: {response.status_code}")
+    logger.info(f"Response: {response.json()}")
+    logger.info(f"Headers: {response.headers}")
 
 
     data = response.json().get('data', [])
@@ -93,7 +93,7 @@ def get_filtered_params(stream_id):
         current_time = int(time.time())
         wait_time = reset_time - current_time
         if wait_time > 0:
-            logging.info(f"Aguardando {wait_time} segundos.")
+            logger.info(f"Aguardando {wait_time} segundos.")
             time.sleep(wait_time)
     
     if data:

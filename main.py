@@ -4,21 +4,21 @@ from tqdm import tqdm
 from data.save_data import save_all_stream_data
 from utils.log import *
 
-log_config()
+logger = get_logger("main")
 data_api = get_streams()
 
-logging.info(f"Total de {len(data_api)} Streams ID's encontrados")
+logger.info(f"Total de {len(data_api)} Streams ID's encontrados")
 
 
 if not data_api:
-    logging.warning('Nenhum stream ID encontrado')
+    logger.warning('Nenhum stream ID encontrado')
 
 
 
 max_workers = 18 # max number of threads to use
 stream_details = [] # list to store the details of the streams
 
-logging.info(f"Buscando filtros com {max_workers} threads em paralelo")
+logger.info(f"Buscando filtros com {max_workers} threads em paralelo")
 start_time = time.time()
 
 batches = [data_api[i:i+100]for i in range(0, len(data_api), 100)]
@@ -38,8 +38,8 @@ successful = [r for r in results if 'error' not in r]
 failed = [r for r in results if 'error' in r]
 
 
-logging.info(f"Concluido em {time.time() - start_time:.2f} segudos")
-logging.info(f"Sucesso: {len(successful)}, Falhas: {len(failed)}")
+logger.info(f"Concluido em {time.time() - start_time:.2f} segudos")
+logger.info(f"Sucesso: {len(successful)}, Falhas: {len(failed)}")
 
 save_all_stream_data(successful)
 
