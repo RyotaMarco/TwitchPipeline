@@ -29,8 +29,11 @@ def main():
             
             for future in tqdm(futures, total=len(stream_ids), desc="Processando streams"):
                 stream_data = future.result()
-                if 'error' not in stream_data:
+                logger.info(f"Stream data recebido: {stream_data}")
+                if stream_data and 'error' not in stream_data:
                     categories_streams.append(stream_data)
+                else:
+                    logger.warning(f"Stream descartado ou erro: {stream_data}")
         
         logger.info(f"Processados {len(categories_streams)} streams com sucesso")
         

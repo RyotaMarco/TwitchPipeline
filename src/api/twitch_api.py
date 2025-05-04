@@ -31,10 +31,10 @@ class TwitchAPI:
             reset_time = int(response.headers.get("Ratelimit-Reset", 0))
             
 
-            if remaining <= 3:
+            if remaining <= 10:
                 current_time = int(time.time())
                 wait_time = reset_time - current_time
-                if wait_time > 0:
+                if wait_time > 2:
                     self.logger.warning(f"Aguardando {wait_time} segundos.")
                     time.sleep(wait_time)
 
@@ -103,7 +103,7 @@ class TwitchAPI:
 
 
 
-    def get_filtered_params(self, stream_id):
+    def get_filtered_params(self, stream_id, max_retries=3, backoff=2):
         '''obtain stream info with ID '''
 
         url = f"{self.base_url}/streams"
@@ -113,28 +113,32 @@ class TwitchAPI:
             'user_id': stream_id
         }
 
-        try:
-            response_data = self.fetch_page(url, headers, params)
+        for attempt in range(1, max_retries + 1):
+            try:
+                response_data = self.fetch_page(url, headers, params)
+                
+                data = response_data.get('data', [])
             
+                if data:
+                    filtered_data = data[0]
+                    return {
+                        'user_id':filtered_data['user_id'],
+                        'user_name':filtered_data['user_name'],
+                        'Stream_id':filtered_data['id'],
+                        'viewer_count':filtered_data['viewer_count'],
+                        'game_name':filtered_data['game_name'],
+                        'started_at':filtered_data['started_at'],
+                        'is_mature':filtered_data['is_mature'],
+                        'thumbnail_url':filtered_data['thumbnail_url']
+                    }    
+                else:
+                    return {'stream_id': stream_id, 'error': 'Stream não encontrado'}
+                
 
-            data = response_data.get('data', [])
-        
-            if data:
-                filtered_data = data[0]
-                return {
-                    'user_id':filtered_data['user_id'],
-                    'user_name':filtered_data['user_name'],
-                    'Stream_id':filtered_data['id'],
-                    'viewer_count':filtered_data['viewer_count'],
-                    'game_name':filtered_data['game_name'],
-                    'started_at':filtered_data['started_at'],
-                    'is_mature':filtered_data['is_mature'],
-                    'thumbnail_url':filtered_data['thumbnail_url']
-                }    
-            else:
-                return {'stream_id': stream_id, 'error': 'Stream não encontrado'}
-            
-
-        except Exception as e:
-            self.logger.error(f"Erro ao obter informações do stream {stream_id}: {e}")
-            raise        
+            except Exception as e:
+                self.logger.error(f"Tentativa {attempt} - Erro ao obter informações do stream {stream_id}: {e}")
+                if attempt == max_retries:
+                    self.logger.error(f"Falha definitiva ao obter stream {stream_id} após {max_retries} tentativas.")
+                    return {'stream_id': stream_id, 'error': str(e)}
+                else:
+                    time.sleep(backoff * attempt)
