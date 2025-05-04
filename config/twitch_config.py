@@ -4,10 +4,10 @@ import os
 from requests.exceptions import HTTPError
 import time
 import random
-from utils.log import *
+from src.utils.log import *
 
 
-logger = get_logger("Twitch_api_config")
+logger = get_logger("twitch_api_config")
 
 dotenv.load_dotenv()
 '''
@@ -31,7 +31,7 @@ def get_acess_token():
         try:
             if token_url is None:
                 logger.error("token_url não está definido no ambiente!")
-                raise ValueError("token_url não está definido no ambiente!")
+                raise
             
             response = requests.post(token_url, params=params)
             response.raise_for_status()

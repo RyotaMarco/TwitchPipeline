@@ -1,48 +1,49 @@
-from src.api.twitch_api import *
+from src.api.twitch_api import TwitchAPI
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 from data.save_data import save_all_stream_data
-from utils.log import *
-
-logger = get_logger("main")
-data_api = get_streams()
-
-logger.info(f"Total de {len(data_api)} Streams ID's encontrados")
+from src.utils.log import get_logger
 
 
-if not data_api:
-    logger.warning('Nenhum stream ID encontrado')
+def main():
+    logger = get_logger("main")
+    twitch_api = TwitchAPI()
+    
+    try:
+        logger.info("Buscando streams da Twitch...")
+        streams = twitch_api.get_streams()
+        logger.info(f"Encontrados {len(streams)} streams ao vivo")
+        
+        if not streams:
+            logger.warning("Nenhum stream encontrado")
+            return
+        
+        stream_ids = [stream['id'] for stream in streams]
 
 
+        logger.info("Processando informações detalhadas de cada stream...")
+        categories_streams = []
+        
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(twitch_api.get_filtered_params, stream_id) for stream_id in stream_ids]
+            
+            for future in tqdm(futures, total=len(stream_ids), desc="Processando streams"):
+                stream_data = future.result()
+                if 'error' not in stream_data:
+                    categories_streams.append(stream_data)
+        
+        logger.info(f"Processados {len(categories_streams)} streams com sucesso")
+        
+        if categories_streams:
+            save_all_stream_data(categories_streams)
+            logger.info("Dados salvos com sucesso")
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar ou processar streams: {e}")
+        raise
+    
+    return categories_streams
 
-max_workers = 18 # max number of threads to use
-stream_details = [] # list to store the details of the streams
 
-logger.info(f"Buscando filtros com {max_workers} threads em paralelo")
-start_time = time.time()
-
-batches = [data_api[i:i+100]for i in range(0, len(data_api), 100)]
-
-results = []
-with ThreadPoolExecutor(max_workers=max_workers) as executor:
-    # Criar uma barra de progresso
-    batch_results = list(tqdm(
-        executor.map(get_filtered_params, data_api),
-        total=len(data_api),
-        desc="Processando streams"
-    ))
-    for batch in batch_results:
-        results.append(batch)
-
-successful = [r for r in results if 'error' not in r]
-failed = [r for r in results if 'error' in r]
-
-
-logger.info(f"Concluido em {time.time() - start_time:.2f} segudos")
-logger.info(f"Sucesso: {len(successful)}, Falhas: {len(failed)}")
-
-save_all_stream_data(successful)
-
-if successful:
-    print("\nExemplo de dados obtidos:")
-    print()
+if __name__ == "__main__":
+    main()
