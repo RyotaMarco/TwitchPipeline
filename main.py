@@ -10,7 +10,8 @@ def main():
     twitch_api = TwitchAPI()
     
     try:
-        logger.info("Buscando streams da Twitch...")
+        logger.info("Iniciando coleta de dados da Twitch...")
+
         streams = twitch_api.get_streams()
         logger.info(f"Encontrados {len(streams)} streams ao vivo")
         
@@ -18,18 +19,18 @@ def main():
             logger.warning("Nenhum stream encontrado")
             return
         
-        stream_ids = [stream['id'] for stream in streams]
-
-
-        logger.info("Processando informações detalhadas de cada stream...")
+        if streams:
+            logger.info(f"Exemplo de stream: {streams[0]}")
+        
+        logger.info("Processando dados dos streams em paralelo...")
         categories_streams = []
         
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [executor.submit(twitch_api.get_filtered_params, stream_id) for stream_id in stream_ids]
+        with ThreadPoolExecutor(max_workers=18) as executor:
+            futures = [executor.submit(twitch_api.filter_stream_data, stream) for stream in streams]
             
-            for future in tqdm(futures, total=len(stream_ids), desc="Processando streams"):
+        
+            for future in tqdm(futures, total=len(streams), desc="Processando streams"):
                 stream_data = future.result()
-                logger.info(f"Stream data recebido: {stream_data}")
                 if stream_data and 'error' not in stream_data:
                     categories_streams.append(stream_data)
                 else:
@@ -37,9 +38,12 @@ def main():
         
         logger.info(f"Processados {len(categories_streams)} streams com sucesso")
         
+        
         if categories_streams:
             save_all_stream_data(categories_streams)
             logger.info("Dados salvos com sucesso")
+        else:
+            logger.warning("Nenhum stream processado com sucesso para salvar")
         
     except Exception as e:
         logger.error(f"Erro ao buscar ou processar streams: {e}")
