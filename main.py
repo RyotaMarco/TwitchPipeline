@@ -2,7 +2,9 @@ from src.api.twitch_api import TwitchAPI
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 from data.save_data import save_all_stream_data
+from src.service.etl import PySparkETL
 from src.utils.log import get_logger
+import os
 
 
 def main():
@@ -44,6 +46,22 @@ def main():
             logger.info("Dados salvos com sucesso")
         else:
             logger.warning("Nenhum stream processado com sucesso para salvar")
+
+        logger.info("Iniciando transformação de JSON para Parquet.")
+
+        etl = PySparkETL()
+
+        spark = etl.spark_session()
+
+        schema = etl.get_schema()
+
+        json_path = f'{os.getenv("RAW_DATA")}/*.json'
+        output_path = os.getenv("PROCESSED_DATA")
+
+        df = etl.read_json(spark=spark, json_path=json_path, schema=schema)
+        df_clean = etl.clean_data(df)
+        etl.parquet_transform(df_clean, output_path=output_path, partition_col="user_id")
+
         
     except Exception as e:
         logger.error(f"Erro ao buscar ou processar streams: {e}")
